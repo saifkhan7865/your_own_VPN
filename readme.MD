@@ -57,7 +57,7 @@
 
 2. **Build the Certificate Authority (CA)**:
    ```bash
-   ./easyrsa build-ca
+   ./easyrsa build-ca nopass
    ```
    - Follow the prompts and set a strong passphrase for your CA.
 
@@ -98,28 +98,38 @@
    sudo nano /etc/openvpn/server.conf
    ```
    Add the following:
-   ```plaintext
+   ```
    port 1194
    proto udp
    dev tun
-   ca ca.crt
-   cert server.crt
-   key server.key
-   dh dh.pem
+   ca /etc/openvpn/ca.crt
+   cert /etc/openvpn/server.crt
+   key /etc/openvpn/server.key
+   dh /etc/openvpn/dh.pem
    auth SHA256
-   tls-auth ta.key 0
+   tls-auth /etc/openvpn/ta.key 0
    cipher AES-256-CBC
-   push "redirect-gateway def1 bypass-dhcp"
-   push "dhcp-option DNS 8.8.8.8"
-   push "dhcp-option DNS 8.8.4.4"
    keepalive 10 120
    persist-key
    persist-tun
+   push "redirect-gateway def1 bypass-dhcp"
+   push "dhcp-option DNS 8.8.8.8"
+   push "dhcp-option DNS 8.8.4.4"
    user nobody
    group nogroup
    status /var/log/openvpn-status.log
    log-append /var/log/openvpn.log
    verb 3
+   tls-server
+   
+   # Define the VPN subnet for clients
+   server 10.8.0.0 255.255.255.0
+   
+   # Enable IP forwarding for the VPN
+   push "route 10.8.0.0 255.255.255.0"
+   
+   # Log additional information for debugging
+   explicit-exit-notify 1
    ```
 
 3. **Enable IP Forwarding**:
